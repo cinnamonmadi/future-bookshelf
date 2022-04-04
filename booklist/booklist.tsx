@@ -1,35 +1,54 @@
 import { SafeAreaView, ScrollView, View, Text, Image, StyleSheet, Platform, StatusBar } from "react-native";
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Volume } from './types';
 import Foundation from '@expo/vector-icons/Foundation';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { RootStackParams } from '../App';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-export interface BookListProps {
-    volumes: Volume[];
-};
+type BookListProps = NativeStackScreenProps<RootStackParams, 'BookList'>
 
 export interface BookListItemProps {
     volume: Volume;
+    index: number;
 };
 
 
-export const BookList: React.FC<BookListProps> = ({ volumes }: BookListProps)  => {
+export const BookList: React.FC<BookListProps> = ({ navigation }: BookListProps)  => {
+    const [volumes, setVolumes] = useState([]);
+
+    const awaitAndHandleSignIn = async () => {
+        const isSignedIn = await GoogleSignin.isSignedIn();
+        if (!isSignedIn) {
+            navigation.navigate('SignIn');
+        } 
+    }; 
+
+    useEffect(() => { 
+        awaitAndHandleSignIn(); 
+    }, []);
+
+    useEffect(() => {
+        fetch('https://www.googleapis.com/books/v1/volumes?q=The Left Hand of Darkness').then((response) => response.json()).then((response) => {
+            response.items.slice(10);
+            setVolumes(response.items.map((item: any) => item.volumeInfo));
+            console.log(response.items.length);
+        });
+    }, []);
+
     return (
         <SafeAreaView style={bookListStyles.bookList}>
             <ScrollView>
                 <Text style={bookListStyles.listHeaderText}>Book List</Text>
-                {volumes.map((volume) => (
-                    <BookListItem volume={volume} />
-                ))}
+                {volumes && volumes.map((volume, index) => <BookListItem volume={volume} index={index} />)}
             </ScrollView>
         </SafeAreaView>
     );
 }
 
-const BookListItem: React.FC<BookListItemProps> = ({ volume }: BookListItemProps) => {
-    const isbn_identifier = volume.industryIdentifiers.find((industryIdentifier) => industryIdentifier.type === 'ISBN 13');
-    const isbn = isbn_identifier === undefined ? '' : isbn_identifier.identifier;
+const BookListItem: React.FC<BookListItemProps> = ({ volume, index }: BookListItemProps) => {
     return (
-        <View key={isbn} style={bookListStyles.listItemWrapper}>
+        <View key={index} style={bookListStyles.listItemWrapper}>
             <View style={bookListStyles.listItem}>
                 <View style={bookListStyles.listImageWrapper}>
                     <Image

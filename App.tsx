@@ -1,6 +1,8 @@
 import { StyleSheet } from 'react-native';
 import { BookList, Volume } from './booklist';
 import { SignIn } from './signin';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 const emptyVolume: Volume = {
   title: '',
@@ -48,6 +50,13 @@ const createVolume = (isbn: string, title: string, author: string, url: string):
   };
 };
 
+export type RootStackParams = {
+  SignIn: undefined;
+  BookList: undefined;
+};
+
+const Stack = createNativeStackNavigator<RootStackParams>();
+
 export default function App() {
   const volumes = [
     createVolume('0', 'The Left Hand of Darkness', 'Ursula K. LeGuin', 'http://books.google.com/books/content?id=MDveDQAAQBAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api'),
@@ -56,8 +65,12 @@ export default function App() {
     createVolume('3', 'The Handmaid\'s Tale', 'Margret Atwood', 'http://books.google.com/books/content?id=MDveDQAAQBAJ&printsec=frontcover&img=1&zoom=5&source=gbs_api'),
   ];
   return (
-    // <SignIn volumes={volumes}/>
-    <SignIn />
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName='SignIn' screenOptions={{ headerShown: false, gestureEnabled: false }}>
+        <Stack.Screen name="SignIn" component={SignIn} />
+        <Stack.Screen name="BookList" component={BookList} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 

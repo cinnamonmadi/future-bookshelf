@@ -2,10 +2,17 @@ import { SafeAreaView, View, StyleSheet, Platform, StatusBar, Text } from 'react
 import { useState, useEffect } from 'react';
 import { GoogleSignin, GoogleSigninButton, statusCodes } from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
+import { useNavigation } from '@react-navigation/native';
+import { RootStackParams } from '../App';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-export const SignIn = () => {
+type SignInProps = NativeStackScreenProps<RootStackParams, 'SignIn'>
+
+export const SignIn: React.FC<SignInProps> = ({ navigation }) => {
     const [loggedIn, setLoggedIn] = useState(false);
     const [userInfo, setUserInfo] = useState([]);
+
+    // const navigation = useNavigation();
 
     useEffect(() => {
         // TODO add webClient / androidClient ID?
@@ -15,6 +22,17 @@ export const SignIn = () => {
             iosClientId: '166237020384-uq3c9l8gis41uefogkhernmvhie3e2l2.apps.googleusercontent.com', 
             offlineAccess: true, 
         });
+    }, []);
+
+    const awaitAndHandleSignIn = async () => {
+        const isSignedIn = await GoogleSignin.isSignedIn();
+        if (isSignedIn) {
+            navigation.navigate('BookList');
+        }
+    };
+
+    useEffect(() => {
+        awaitAndHandleSignIn();
     }, []);
 
     const signIn = async () => {
